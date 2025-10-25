@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Response Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-title h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .header-title p {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin: 0.25rem 0 0 0;
+            font-weight: 300;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(255,255,255,0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #48bb78;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .controls-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .controls-header {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            background: #2d3748;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-transform: none;
+        }
+
+        .btn:hover {
+            background: #1a202c;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn.primary {
+            background: #3182ce;
+        }
+
+        .btn.primary:hover {
+            background: #2c5282;
+        }
+
+        .btn.success {
+            background: #38a169;
+        }
+
+        .btn.success:hover {
+            background: #2f855a;
+        }
+
+        .btn.danger {
+            background: #e53e3e;
+        }
+
+        .btn.danger:hover {
+            background: #c53030;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .filter-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #4a5568;
+        }
+
+        select {
+            padding: 0.5rem;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            background: white;
+            font-size: 0.875rem;
+            color: #2d3748;
+        }
+
+        .statistics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 2rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            position: relative;
+            text-align: center;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .stat-card.total::before { background: #3182ce; }
+        .stat-card.active::before { background: #e53e3e; }
+        .stat-card.resolved::before { background: #38a169; }
+        .stat-card.response-time::before { background: #d69e2e; }
+
+        .stat-card h3 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card.total h3 { color: #3182ce; }
+        .stat-card.active h3 { color: #e53e3e; }
+        .stat-card.resolved h3 { color: #38a169; }
+        .stat-card.response-time h3 { color: #d69e2e; }
+
+        .stat-card p {
+            color: #718096;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+        }
+
+        .alerts-section h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .map-section {
+            position: sticky;
+            top: 2rem;
+        }
+
+        .map-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        .map-header {
+            padding: 1rem 1.5rem;
+            background: #f7fafc;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+
+        .alert-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            transition: all 0.2s;
+            margin-bottom: 1.5rem;
+        }
+
+        .alert-card:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .alert-card.high-priority {
+            border-left: 4px solid #e53e3e;
+        }
+
+        .alert-header {
+            padding: 1rem 1.5rem;
+            background: #f7fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .alert-header.resolved {
+            background: #f0fff4;
+            border-bottom-color: #c6f6d5;
+        }
+
+        .alert-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .alert-type {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .alert-type.medical { background: #fed7d7; color: #c53030; }
+        .alert-type.fire { background: #fed7d7; color: #e53e3e; }
+        .alert-type.police { background: #bee3f8; color: #2b6cb0; }
+        .alert-type.accident { background: #faf0e6; color: #975a16; }
+        .alert-type.natural { background: #c6f6d5; color: #2f855a; }
+        .alert-type.general { background: #e2e8f0; color: #4a5568; }
+
+        .alert-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .alert-status.active {
+            color: #e53e3e;
+        }
+
+        .alert-status.resolved {
+            color: #38a169;
+        }
+
+        .alert-body {
+            padding: 1.5rem;
+        }
+
+        .alert-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #3182ce, #2c5282);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .user-info h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.25rem;
+        }
+
+        .user-info p {
+            font-size: 0.875rem;
+            color: #718096;
+        }
+
+        .contact-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .contact-btn {
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: white;
+            transition: all 0.2s;
+        }
+
+        .contact-btn.phone {
+            background: #38a169;
+        }
+
+        .contact-btn.phone:hover {
+            background: #2f855a;
+        }
+
+        .contact-btn.sms {
+            background: #3182ce;
+        }
+
+        .contact-btn.sms:hover {
+            background: #2c5282;
+        }
+
+        .alert-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-group h4 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #4a5568;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .detail-group p {
+            font-size: 0.875rem;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-group strong {
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        .message-section {
+            background: #f7fafc;
+            padding: 1rem;
+            border-radius: 6px;
+            border-left: 4px solid #3182ce;
+            margin-bottom: 1rem;
+        }
+
+        .message-section h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .device-section {
+            background: #f7fafc;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+
+        .device-section h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.75rem;
+        }
+
+        .map-link {
+            color: #3182ce;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .map-link:hover {
+            color: #2c5282;
+            text-decoration: underline;
+        }
+
+        .priority-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .priority-high {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .priority-medium {
+            background: #faf0e6;
+            color: #975a16;
+        }
+
+        .priority-low {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+
+        .time-badge {
+            font-size: 0.75rem;
+            color: #718096;
+            background: #e2e8f0;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .loading, .no-alerts {
+            text-align: center;
+            padding: 3rem;
+            color: #718096;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .map-section {
+                position: static;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .alert-details {
+                grid-template-columns: 1fr;
+            }
+
+            .statistics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-title">
+                <div>
+                    <h1>Emergency Response Dashboard</h1>
+                    <p>Real-time monitoring and coordination system</p>
+                </div>
+            </div>
+            <div class="system-status">
+                <div class="status-indicator"></div>
+                <span>System Online</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="controls-section">
+            <div class="controls-header">
+                🔧 Operations Control
+            </div>
+            <div class="controls">
+                <button class="btn primary" onclick="loadAlerts()">
+                    <span>🔄</span>
+                    <span>Refresh Data</span>
+                </button>
+                <button class="btn" onclick="toggleAutoRefresh()">
+                    <span>⚡</span>
+                    <span>Auto Refresh: <span id="autoRefreshStatus">OFF</span></span>
+                </button>
+                <button class="btn danger" onclick="filterUrgentAlerts()">
+                    <span>🚨</span>
+                    <span>High Priority Only</span>
+                </button>
+                
+                <div class="filter-group">
+                    <label for="filterStatus">Status:</label>
+                    <select id="filterStatus" onchange="filterAlerts()">
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="resolved">Resolved</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="filterType">Type:</label>
+                    <select id="filterType" onchange="filterAlerts()">
+                        <option value="all">All Types</option>
+                        <option value="medical">Medical</option>
+                        <option value="fire">Fire</option>
+                        <option value="police">Police</option>
+                        <option value="accident">Accident</option>
+                        <option value="natural">Natural Disaster</option>
+                        <option value="general">General</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="statistics">
+            <div class="stat-card total">
+                <h3 id="totalAlerts">8</h3>
+                <p>Total Incidents</p>
+            </div>
+            <div class="stat-card active">
+                <h3 id="activeAlerts">3</h3>
+                <p>Active Cases</p>
+            </div>
+            <div class="stat-card resolved">
+                <h3 id="resolvedAlerts">5</h3>
+                <p>Resolved</p>
+            </div>
+            <div class="stat-card response-time">
+                <h3 id="avgResponseTime">12m</h3>
+                <p>Avg Response Time</p>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="alerts-section">
+                <h2>📋 Active Incidents</h2>
+                <div id="alertsContainer">
+                    <!-- Emergency data will be loaded here -->
+                </div>
+            </div>
+
+            <div class="map-section">
+                <div class="map-container">
+                    <div class="map-header">
+                        📍 Incident Location Map
+                    </div>
+                    <div id="map"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Replace with your actual Supabase credentials
+        const SUPABASE_URL = 'https://dbmvayybiacsufdrkmhc.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRibXZheXliaWFjc3VmZHJrbWhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MDg1NTksImV4cCI6MjA3MjM4NDU1OX0.cRVR1DhQzGpac2dDx-gCFok9F1dw1vJx8Fr7HNMRVxA';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let allAlerts = [];
+        let autoRefreshInterval = null;
+        let map = null;
+        let markers = [];
+
+        // Professional demo data
+        const demoAlerts = [
+            {
+                id: 'INC-2024-001',
+                user_name: 'Sarah Johnson',
+                user_phone: '+1-555-0123',
+                user_email: 'sarah.johnson@email.com',
+                emergency_type: 'medical',
+                latitude: 40.7128,
+                longitude: -74.0060,
+                address: '123 Emergency St, New York, NY 10001',
+                message: 'Patient experiencing chest pain and difficulty breathing. Requires immediate medical attention.',
+                created_at: new Date(Date.now() - 300000).toISOString(),
+                is_resolved: false,
+                device_info: { platform: 'iOS', model: 'iPhone 14', version: '16.5' }
+            },
+            {
+                id: 'INC-2024-002',
+                user_name: 'Michael Chen',
+                user_phone: '+1-555-0124',
+                user_email: 'michael.chen@email.com',
+                emergency_type: 'fire',
+                latitude: 34.0522,
+                longitude: -118.2437,
+                address: '456 Fire Lane, Los Angeles, CA 90210',
+                message: 'Structure fire reported on 3rd floor. Multiple occupants may be trapped.',
+                created_at: new Date(Date.now() - 180000).toISOString(),
+                is_resolved: false,
+                device_info: { platform: 'Android', model: 'Samsung Galaxy S23', version: '13' }
+            },
+            {
+                id: 'INC-2024-003',
+                user_name: 'Emma Rodriguez',
+                user_phone: '+1-555-0125',
+                user_email: 'emma.rodriguez@email.com',
+                emergency_type: 'accident',
+                latitude: 41.8781,
+                longitude: -87.6298,
+                address: '789 Accident Ave, Chicago, IL 60601',
+                message: 'Multi-vehicle collision with injuries. Traffic blocked in both directions.',
+                created_at: new Date(Date.now() - 900000).toISOString(),
+                is_resolved: false,
+                device_info: { platform: 'iOS', model: 'iPhone 13', version: '16.2' }
+            },
+            {
+                id: 'INC-2024-004',
+                user_name: 'David Williams',
+                user_phone: '+1-555-0126',
+                user_email: 'david.williams@email.com',
+                emergency_type: 'police',
+                latitude: 29.7604,
+                longitude: -95.3698,
+                address: '321 Crime St, Houston, TX 77001',
+                message: 'Armed robbery in progress at retail location.',
+                created_at: new Date(Date.now() - 1800000).toISOString(),
+                is_resolved: true,
+                resolved_at: new Date(Date.now() - 900000).toISOString(),
+                resolved_by: 'Officer Martinez #2547',
+                device_info: { platform: 'Android', model: 'Google Pixel 7', version: '13' }
+            },
+            {
+                id: 'INC-2024-005',
+                user_name: 'Lisa Thompson',
+                user_phone: '+1-555-0127',
+                user_email: 'lisa.thompson@email.com',
+                emergency_type: 'medical',
+                latitude: 33.4484,
+                longitude: -112.0740,
+                address: '654 Health Blvd, Phoenix, AZ 85001',
+                message: 'Elderly patient fallen with suspected hip fracture.',
+                created_at: new Date(Date.now() - 2400000).toISOString(),
+                is_resolved: true,
+                resolved_at: new Date(Date.now() - 1800000).toISOString(),
+                resolved_by: 'Paramedic Team Alpha-7',
+                device_info: { platform: 'iOS', model: 'iPhone 12', version: '15.7' }
+            },
+            {
+                id: 'INC-2024-006',
+                user_name: 'James Wilson',
+                user_phone: '+1-555-0128',
+                user_email: 'james.wilson@email.com',
+                emergency_type: 'natural',
+                latitude: 39.7392,
+                longitude: -104.9903,
+                address: '987 Storm Ave, Denver, CO 80201',
+                message: 'Severe flooding in residential area. Water levels rising rapidly.',
+                created_at: new Date(Date.now() - 3600000).toISOString(),
+                is_resolved: true,
+                resolved_at: new Date(Date.now() - 2700000).toISOString(),
+                resolved_by: 'Emergency Response Unit 12',
+                device_info: { platform: 'Android', model: 'OnePlus 11', version: '13' }
+            },
+            {
+                id: 'INC-2024-007',
+                user_name: 'Maria Garcia',
+                user_phone: '+1-555-0129',
+                user_email: 'maria.garcia@email.com',
+                emergency_type: 'general',
+                latitude: 47.6062,
+                longitude: -122.3321,
+                address: '147 Help St, Seattle, WA 98101',
+                message: 'Hiker lost in forest area. GPS coordinates transmitted.',
+                created_at: new Date(Date.now() - 4800000).toISOString(),
+                is_resolved: true,
+                resolved_at: new Date(Date.now() - 3600000).toISOString(),
+                resolved_by: 'Search & Rescue Team Bravo',
+                device_info: { platform: 'iOS', model: 'iPhone 14 Pro', version: '16.6' }
+            },
+            {
+                id: 'INC-2024-008',
+                user_name: 'Robert Taylor',
+                user_phone: '+1-555-0130',
+                user_email: 'robert.taylor@email.com',
+                emergency_type: 'fire',
+                latitude: 25.7617,
+                longitude: -80.1918,
+                address: '258 Flame Dr, Miami, FL 33101',
+                message: 'Kitchen fire spreading to adjacent rooms.',
+                created_at: new Date(Date.now() - 5400000).toISOString(),
+                is_resolved: true,
+                resolved_at: new Date(Date.now() - 4500000).toISOString(),
+                resolved_by: 'Fire Department Station 42',
+                device_info: { platform: 'Android', model: 'Samsung Galaxy Note 20', version: '12' }
+            }
+        ];
+
+        // Initialize map
+        function initMap() {
+            map = L.map('map').setView([39.8283, -98.5795], 4);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+        }
+
+        function updateMap() {
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+
+            const activeAlerts = allAlerts.filter(alert => !alert.is_resolved);
+            
+            activeAlerts.forEach(alert => {
+                const color = getMarkerColor(alert.emergency_type);
+                const marker = L.circleMarker([alert.latitude, alert.longitude], {
+                    color: color,
+                    fillColor: color,
+                    fillOpacity: 0.8,
+                    radius: 8,
+                    weight: 2
+                }).addTo(map);
+
+                const popupContent = `
+                    <div style="min-width: 220px; font-family: 'Segoe UI', sans-serif;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: #2d3748;">${alert.user_name}</h4>
+                        <p style="margin: 0.25rem 0;"><strong>Incident ID:</strong> ${alert.id}</p>
+                        <p style="margin: 0.25rem 0;"><strong>Type:</strong> ${alert.emergency_type.toUpperCase()}</p>
+                        <p style="margin: 0.25rem 0;"><strong>Time:</strong> ${new Date(alert.created_at).toLocaleString()}</p>
+                        <p style="margin: 0.25rem 0;"><strong>Contact:</strong> ${alert.user_phone || 'N/A'}</p>
+                    </div>
+                `;
+                
+                marker.bindPopup(popupContent);
+                markers.push(marker);
+            });
+
+            if (markers.length > 0) {
+                const group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+
+        function getMarkerColor(type) {
+            const colors = {
+                medical: '#e53e3e',
+                fire: '#dd6b20',
+                police: '#3182ce',
+                accident: '#d69e2e',
+                natural: '#38a169',
+                general: '#4a5568'
+            };
+            return colors[type] || '#4a5568';
+        }
+
+        function getTimeAgo(dateString) {
+            const now = new Date();
+            const alertTime = new Date(dateString);
+            const diffInMinutes = Math.floor((now - alertTime) / (1000 * 60));
+            
+            if (diffInMinutes < 1) return 'Just now';
+            if (diffInMinutes < 60) return `${diffInMinutes} min ago`;
+            if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+            return `${Math.floor(diffInMinutes / 1440)} days ago`;
+        }
+
+        function getUserInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').toUpperCase();
+        }
+
+        function getPriorityLevel(alert) {
+            const minutesAgo = (new Date() - new Date(alert.created_at)) / (1000 * 60);
+            const urgentTypes = ['medical', 'fire', 'accident'];
+            
+            if (urgentTypes.includes(alert.emergency_type) && minutesAgo < 15) {
+                return 'high';
+            } else if (minutesAgo < 60) {
+                return 'medium';
+            }
+            return 'low';
+        }
+
+        async function loadAlerts() {
+            try {
+                allAlerts = demoAlerts;
+                updateStats();
+                updateMap();
+                filterAlerts();
+            } catch (error) {
+                console.error('Error loading alerts:', error);
+                document.getElementById('alertsContainer').innerHTML = 
+                    `<div class="no-alerts"><p>Error loading incidents: ${error.message}</p></div>`;
+            }
+        }
+
+        function updateStats() {
+            const total = allAlerts.length;
+            const active = allAlerts.filter(alert => !alert.is_resolved).length;
+            const resolved = allAlerts.filter(alert => alert.is_resolved).length;
+            
+            const resolvedAlerts = allAlerts.filter(alert => alert.is_resolved && alert.resolved_at);
+            let avgResponseTime = 0;
+            if (resolvedAlerts.length > 0) {
+                const totalResponseTime = resolvedAlerts.reduce((sum, alert) => {
+                    const responseTime = new Date(alert.resolved_at) - new Date(alert.created_at);
+                    return sum + responseTime;
+                }, 0);
+                avgResponseTime = Math.round(totalResponseTime / resolvedAlerts.length / (1000 * 60));
+            }
+
+            document.getElementById('totalAlerts').textContent = total;
+            document.getElementById('activeAlerts').textContent = active;
+            document.getElementById('resolvedAlerts').textContent = resolved;
+            document.getElementById('avgResponseTime').textContent = `${avgResponseTime}m`;
+        }
+
+        function filterAlerts() {
+            const statusFilter = document.getElementById('filterStatus').value;
+            const typeFilter = document.getElementById('filterType').value;
+
+            let filteredAlerts = allAlerts;
+
+            if (statusFilter === 'active') {
+                filteredAlerts = filteredAlerts.filter(alert => !alert.is_resolved);
+            } else if (statusFilter === 'resolved') {
+                filteredAlerts = filteredAlerts.filter(alert => alert.is_resolved);
+            }
+
+            if (typeFilter !== 'all') {
+                filteredAlerts = filteredAlerts.filter(alert => alert.emergency_type === typeFilter);
+            }
+
+            displayAlerts(filteredAlerts);
+        }
+
+        function filterUrgentAlerts() {
+            const urgentAlerts = allAlerts.filter(alert => {
+                const minutesAgo = (new Date() - new Date(alert.created_at)) / (1000 * 60);
+                const urgentTypes = ['medical', 'fire', 'accident'];
+                return !alert.is_resolved && urgentTypes.includes(alert.emergency_type) && minutesAgo < 30;
+            });
+            displayAlerts(urgentAlerts);
+        }
+
+        function displayAlerts(alerts) {
+            const container = document.getElementById('alertsContainer');
+
+            if (alerts.length === 0) {
+                container.innerHTML = '<div class="no-alerts"><p>No incidents found matching the current filters</p></div>';
+                return;
+            }
+
+            const alertsHtml = alerts.map(alert => {
+                const createdAt = new Date(alert.created_at).toLocaleString();
+                const resolvedAt = alert.resolved_at ? new Date(alert.resolved_at).toLocaleString() : null;
+                const mapUrl = `https://www.google.com/maps?q=${alert.latitude},${alert.longitude}`;
+                const timeAgo = getTimeAgo(alert.created_at);
+                const userInitials = getUserInitials(alert.user_name);
+                const priority = getPriorityLevel(alert);
+
+                return `
+                    <div class="alert-card ${priority === 'high' && !alert.is_resolved ? 'high-priority' : ''}">
+                        <div class="priority-badge priority-${priority}">
+                            ${priority} Priority
+                        </div>
+                        <div class="alert-header ${alert.is_resolved ? 'resolved' : ''}">
+                            <div class="alert-meta">
+                                <span class="alert-type ${alert.emergency_type}">${alert.emergency_type}</span>
+                                <span class="time-badge">${timeAgo}</span>
+                            </div>
+                            <div class="alert-status ${alert.is_resolved ? 'resolved' : 'active'}">
+                                ${alert.is_resolved ? '✅ Resolved' : '🔴 Active'}
+                                ${!alert.is_resolved ? `<button class="btn success" style="margin-left: 0.5rem;" onclick="resolveAlert('${alert.id}')">Mark Resolved</button>` : ''}
+                            </div>
+                        </div>
+                        
+                        <div class="alert-body">
+                            <div class="alert-user">
+                                <div class="user-avatar">${userInitials}</div>
+                                <div class="user-info">
+                                    <h3>${alert.user_name}</h3>
+                                    <p>Incident ID: ${alert.id}</p>
+                                    <div class="contact-actions">
+                                        ${alert.user_phone ? `<a href="tel:${alert.user_phone}" class="contact-btn phone">📞 Call</a>` : ''}
+                                        ${alert.user_phone ? `<a href="sms:${alert.user_phone}" class="contact-btn sms">💬 SMS</a>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert-details">
+                                <div class="detail-group">
+                                    <h4>📧 Contact Information</h4>
+                                    <p><strong>Phone:</strong> ${alert.user_phone || 'Not provided'}</p>
+                                    <p><strong>Email:</strong> ${alert.user_email || 'Not provided'}</p>
+                                </div>
+                                <div class="detail-group">
+                                    <h4>📍 Location Details</h4>
+                                    <p><a href="${mapUrl}" target="_blank" class="map-link">🗺️ View on Map</a></p>
+                                    <p><strong>Address:</strong> ${alert.address || 'Address not available'}</p>
+                                    <p><strong>Coordinates:</strong> ${alert.latitude.toFixed(6)}, ${alert.longitude.toFixed(6)}</p>
+                                </div>
+                                <div class="detail-group">
+                                    <h4>⏰ Timeline</h4>
+                                    <p><strong>Reported:</strong> ${createdAt}</p>
+                                    <p><strong>Time Elapsed:</strong> ${timeAgo}</p>
+                                    ${resolvedAt ? `<p><strong>Resolved:</strong> ${resolvedAt}</p>` : ''}
+                                    ${alert.resolved_by ? `<p><strong>Resolved by:</strong> ${alert.resolved_by}</p>` : ''}
+                                </div>
+                            </div>
+                            
+                            ${alert.message ? `
+                                <div class="message-section">
+                                    <h4>📝 Incident Details</h4>
+                                    <p>${alert.message}</p>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="device-section">
+                                <h4>📱 Device Information</h4>
+                                <p><strong>Platform:</strong> ${alert.device_info?.platform || 'Unknown'} | 
+                                <strong>Model:</strong> ${alert.device_info?.model || 'Unknown'} | 
+                                <strong>OS Version:</strong> ${alert.device_info?.version || 'Unknown'}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = alertsHtml;
+        }
+
+        async function resolveAlert(alertId) {
+            try {
+                const resolverInfo = prompt('Enter your name and unit ID to resolve this incident:');
+                if (!resolverInfo) return;
+
+                const alertIndex = allAlerts.findIndex(alert => alert.id === alertId);
+                if (alertIndex !== -1) {
+                    allAlerts[alertIndex].is_resolved = true;
+                    allAlerts[alertIndex].resolved_at = new Date().toISOString();
+                    allAlerts[alertIndex].resolved_by = resolverInfo;
+                }
+
+                alert('Incident marked as resolved successfully.');
+                loadAlerts();
+            } catch (error) {
+                console.error('Error resolving alert:', error);
+                alert('Error resolving incident: ' + error.message);
+            }
+        }
+
+        function toggleAutoRefresh() {
+            const statusSpan = document.getElementById('autoRefreshStatus');
+            
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                statusSpan.textContent = 'OFF';
+            } else {
+                autoRefreshInterval = setInterval(loadAlerts, 30000);
+                statusSpan.textContent = 'ON';
+            }
+        }
+
+        window.addEventListener('load', () => {
+            initMap();
+            loadAlerts();
+        });
+    </script>
+</body>
+</html>

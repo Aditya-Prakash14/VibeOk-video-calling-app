@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Platform usernames
+  codeforcesUsername String?
+  githubUsername     String?
+  leetcodeUsername   String?
+
+  // Relations
+  todos     Todo[]
+  routines  Routine[]
+  dailyGoals DailyGoal[]
+
+  @@map("users")
+}
+
+model Todo {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.Text
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("todos")
+}
+
+model Routine {
+  id          String   @id @default(uuid())
+  routineId   String   // morning_coder, evening_grind, etc.
+  isActive    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, routineId])
+  @@index([userId])
+  @@map("routines")
+}
+
+model DailyGoal {
+  id                  String   @id @default(uuid())
+  date                DateTime @db.Date
+  codeforcesProblems  Int      @default(0)
+  leetcodeProblems    Int      @default(0)
+  githubCommits       Int      @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@map("daily_goals")
+}

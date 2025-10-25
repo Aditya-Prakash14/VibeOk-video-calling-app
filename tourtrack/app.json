@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "SOS Emergency App",
+    "slug": "sos-emergency-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a1a2e"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app needs location access to send your location during emergency situations.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs location access to send your location during emergency situations."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1a1a2e"
+      },
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location to send emergency alerts with your current position.",
+          "locationAlwaysPermission": "Allow $(PRODUCT_NAME) to use your location to send emergency alerts with your current position.",
+          "locationWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location to send emergency alerts with your current position."
+        }
+      ]
+    ]
+  }
+}
