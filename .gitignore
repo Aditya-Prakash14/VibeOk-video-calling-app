@@ -1,33 +1,98 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
 # Dependencies
-node_modules
+node_modules/
 .pnp
 .pnp.js
 
-# Testing
-coverage
+# Expo
+.expo/
+.expo-shared/
+dist/
+web-build/
 
-# Production
-build
-dist
+# Native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.ipa
+*.apk
 
-# Misc
+# Metro
+.metro-health-check*
+
+# Debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.log
+
+# OS
 .DS_Store
+*.pem
+
+# Local env files
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
 
-# Editor directories and files
-.idea
-.vscode
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Build outputs
+build/
+android/app/build/
+ios/build/
+*.hprof
+
+# Android
+android/.gradle
+android/captures/
+android/gradlew
+android/gradlew.bat
+android/local.properties
+android/.cxx/
+android/*.iml
+android/*.hprof
+
+# iOS
+ios/Pods/
+ios/*.xcworkspace
+ios/*.xcuserdata
+ios/*.xcscmblueprint
+ios/Podfile.lock
+ios/DerivedData/
+
+# MongoDB
+*.lock
+
+# Coverage
+coverage/
+*.lcov
+
+# Testing
+.nyc_output
+
+# Misc
+.turbo
+.vercel
