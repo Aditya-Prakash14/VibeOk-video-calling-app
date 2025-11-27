@@ -37,57 +37,77 @@ export default function SignInScreen() {
   };
 
   return (
-    <Box className="flex-1 bg-gradient-to-b from-purple-900 to-indigo-900">
+    <Box className="flex-1 bg-gradient-to-b from-gray-900 via-black to-gray-900">
       <Center className="flex-1 px-6">
-        <VStack space="xl" className="w-full max-w-md">
-          <VStack space="md" className="items-center">
-            <Heading size="3xl" className="text-white text-center">
+        <VStack space="2xl" className="w-full max-w-md">
+          {/* Logo/Icon */}
+          <Box className="items-center">
+            <Box className="w-20 h-20 bg-white/10 backdrop-blur-xl rounded-3xl items-center justify-center mb-6 shadow-2xl border border-white/20">
+              <Text className="text-5xl">📹</Text>
+            </Box>
+            <Heading size="4xl" className="text-white text-center font-bold tracking-tight">
               Welcome Back
             </Heading>
-            <Text className="text-gray-300 text-center">
-              Sign in to continue
+            <Text size="md" className="text-gray-300 text-center mt-2">
+              Sign in to start connecting
             </Text>
-          </VStack>
+          </Box>
 
-          <VStack space="lg">
-            <Input variant="outline" size="lg" className="bg-white/10 border-purple-400">
-              <InputField
-                autoCapitalize="none"
-                placeholder="Enter email"
-                value={emailAddress}
-                onChangeText={setEmailAddress}
-                keyboardType="email-address"
-                className="text-white"
-                placeholderTextColor="#9CA3AF"
-              />
-            </Input>
+          {/* Form Card */}
+          <VStack space="lg" className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/10 shadow-2xl">
+            <VStack space="md">
+              <Text className="text-white/70 text-xs font-semibold uppercase tracking-wide mb-1">Email</Text>
+              <Input 
+                variant="outline" 
+                size="xl" 
+                className="bg-white/10 border-white/20 rounded-xl shadow-lg"
+              >
+                <InputField
+                  autoCapitalize="none"
+                  placeholder="you@example.com"
+                  value={emailAddress}
+                  onChangeText={setEmailAddress}
+                  keyboardType="email-address"
+                  className="text-white text-base"
+                  placeholderTextColor="#9CA3AF"
+                />
+              </Input>
+            </VStack>
 
-            <Input variant="outline" size="lg" className="bg-white/10 border-purple-400">
-              <InputField
-                placeholder="Enter password"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                className="text-white"
-                placeholderTextColor="#9CA3AF"
-              />
-            </Input>
+            <VStack space="md">
+              <Text className="text-white/70 text-xs font-semibold uppercase tracking-wide mb-1">Password</Text>
+              <Input 
+                variant="outline" 
+                size="xl" 
+                className="bg-white/10 border-white/20 rounded-xl shadow-lg"
+              >
+                <InputField
+                  placeholder="Enter your password"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  className="text-white text-base"
+                  placeholderTextColor="#9CA3AF"
+                />
+              </Input>
+            </VStack>
 
             <Button
-              size="lg"
-              className="w-full bg-purple-600 rounded-xl"
+              size="xl"
+              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl mt-4 shadow-xl"
               onPress={onSignInPress}
             >
-              <ButtonText className="font-semibold text-lg">Sign In</ButtonText>
+              <ButtonText className="font-bold text-lg tracking-wide">Sign In</ButtonText>
             </Button>
-
-            <Box className="flex-row justify-center gap-2">
-              <Text className="text-gray-300">Don't have an account?</Text>
-              <Link href="/(auth)/sign-up">
-                <Text className="text-purple-400 font-semibold">Sign up</Text>
-              </Link>
-            </Box>
           </VStack>
+
+          {/* Footer */}
+          <Box className="flex-row justify-center items-center gap-2">
+            <Text className="text-gray-400 text-sm">Don't have an account?</Text>
+            <Link href="/(auth)/sign-up">
+              <Text className="text-purple-400 font-bold text-sm">Sign up</Text>
+            </Link>
+          </Box>
         </VStack>
       </Center>
     </Box>

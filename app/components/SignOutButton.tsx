@@ -17,13 +17,13 @@ export const SignOutButton = () => {
 
   return (
     <Button
-      size="lg"
+      size="xl"
       variant="outline"
-      className="w-full border-red-400 rounded-xl mt-4"
+      className="w-full border-2 border-red-400/40 bg-red-500/5 rounded-2xl mt-4 shadow-lg"
       onPress={handleSignOut}
     >
-      <ButtonText className="font-semibold text-lg text-red-400">
-        Sign Out
+      <ButtonText className="font-bold text-base text-red-400 tracking-wide">
+        🚪 Sign Out
       </ButtonText>
     </Button>
   );

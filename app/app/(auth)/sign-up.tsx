@@ -58,35 +58,55 @@ export default function SignUpScreen() {
 
   if (pendingVerification) {
     return (
-      <Box className="flex-1 bg-gradient-to-b from-purple-900 to-indigo-900">
+      <Box className="flex-1 bg-gradient-to-b from-gray-900 via-black to-gray-900">
         <Center className="flex-1 px-6">
-          <VStack space="xl" className="w-full max-w-md">
-            <VStack space="md" className="items-center">
-              <Heading size="3xl" className="text-white text-center">
-                Verify your email
+          <VStack space="2xl" className="w-full max-w-md">
+            {/* Icon */}
+            <Box className="items-center">
+              <Box className="w-20 h-20 bg-white/10 backdrop-blur-xl rounded-3xl items-center justify-center mb-6 shadow-2xl border border-white/20">
+                <Text className="text-5xl">✉️</Text>
+              </Box>
+              <Heading size="4xl" className="text-white text-center font-bold tracking-tight">
+                Verify Email
               </Heading>
-              <Text className="text-gray-300 text-center">
-                Enter the verification code sent to your email
+              <Text size="md" className="text-gray-300 text-center mt-2 px-4">
+                We sent a code to {emailAddress}
               </Text>
-            </VStack>
+            </Box>
 
-            <VStack space="lg">
-            <Input variant="outline" size="lg" className="bg-white/10 border-purple-400">
-              <InputField
-                placeholder="Enter verification code"
-                value={code}
-                onChangeText={setCode}
-                className="text-white"
-                placeholderTextColor="#9CA3AF"
-              />
-            </Input>              <Button
-                size="lg"
-                className="w-full bg-purple-600 rounded-xl"
+            {/* Form Card */}
+            <VStack space="lg" className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/10 shadow-2xl">
+              <VStack space="md">
+                <Text className="text-white/70 text-xs font-semibold uppercase tracking-wide mb-1">Verification Code</Text>
+                <Input 
+                  variant="outline" 
+                  size="xl" 
+                  className="bg-white/10 border-white/20 rounded-xl shadow-lg"
+                >
+                  <InputField
+                    placeholder="000000"
+                    value={code}
+                    onChangeText={setCode}
+                    keyboardType="number-pad"
+                    className="text-white text-base text-center tracking-widest"
+                    placeholderTextColor="#9CA3AF"
+                    maxLength={6}
+                  />
+                </Input>
+              </VStack>
+
+              <Button
+                size="xl"
+                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl mt-4 shadow-xl"
                 onPress={onVerifyPress}
               >
-                <ButtonText className="font-semibold text-lg">Verify</ButtonText>
+                <ButtonText className="font-bold text-lg tracking-wide">Verify Email</ButtonText>
               </Button>
             </VStack>
+
+            <Text className="text-gray-400 text-sm text-center">
+              Didn't receive the code? Check your spam folder
+            </Text>
           </VStack>
         </Center>
       </Box>
@@ -94,57 +114,78 @@ export default function SignUpScreen() {
   }
 
   return (
-    <Box className="flex-1 bg-gradient-to-b from-purple-900 to-indigo-900">
+    <Box className="flex-1 bg-gradient-to-b from-gray-900 via-black to-gray-900">
       <Center className="flex-1 px-6">
-        <VStack space="xl" className="w-full max-w-md">
-          <VStack space="md" className="items-center">
-            <Heading size="3xl" className="text-white text-center">
+        <VStack space="2xl" className="w-full max-w-md">
+          {/* Logo/Icon */}
+          <Box className="items-center">
+            <Box className="w-20 h-20 bg-white/10 backdrop-blur-xl rounded-3xl items-center justify-center mb-6 shadow-2xl border border-white/20">
+              <Text className="text-5xl">📹</Text>
+            </Box>
+            <Heading size="4xl" className="text-white text-center font-bold tracking-tight">
               Create Account
             </Heading>
-            <Text className="text-gray-300 text-center">
-              Sign up to start video calling
+            <Text size="md" className="text-gray-300 text-center mt-2">
+              Join VibeOk and start connecting
             </Text>
-          </VStack>
+          </Box>
 
-          <VStack space="lg">
-            <Input variant="outline" size="lg" className="bg-white/10 border-purple-400">
-              <InputField
-                autoCapitalize="none"
-                placeholder="Enter email"
-                value={emailAddress}
-                onChangeText={setEmailAddress}
-                keyboardType="email-address"
-                className="text-white"
-                placeholderTextColor="#9CA3AF"
-              />
-            </Input>
+          {/* Form Card */}
+          <VStack space="lg" className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/10 shadow-2xl">
+            <VStack space="md">
+              <Text className="text-white/70 text-xs font-semibold uppercase tracking-wide mb-1">Email</Text>
+              <Input 
+                variant="outline" 
+                size="xl" 
+                className="bg-white/10 border-white/20 rounded-xl shadow-lg"
+              >
+                <InputField
+                  autoCapitalize="none"
+                  placeholder="you@example.com"
+                  value={emailAddress}
+                  onChangeText={setEmailAddress}
+                  keyboardType="email-address"
+                  className="text-white text-base"
+                  placeholderTextColor="#9CA3AF"
+                />
+              </Input>
+            </VStack>
 
-            <Input variant="outline" size="lg" className="bg-white/10 border-purple-400">
-              <InputField
-                placeholder="Enter password"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                className="text-white"
-                placeholderTextColor="#9CA3AF"
-              />
-            </Input>
+            <VStack space="md">
+              <Text className="text-white/70 text-xs font-semibold uppercase tracking-wide mb-1">Password</Text>
+              <Input 
+                variant="outline" 
+                size="xl" 
+                className="bg-white/10 border-white/20 rounded-xl shadow-lg"
+              >
+                <InputField
+                  placeholder="Create a strong password"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  className="text-white text-base"
+                  placeholderTextColor="#9CA3AF"
+                />
+              </Input>
+              <Text className="text-white/50 text-xs mt-1">At least 8 characters</Text>
+            </VStack>
 
             <Button
-              size="lg"
-              className="w-full bg-purple-600 rounded-xl"
+              size="xl"
+              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl mt-4 shadow-xl"
               onPress={onSignUpPress}
             >
-              <ButtonText className="font-semibold text-lg">Continue</ButtonText>
+              <ButtonText className="font-bold text-lg tracking-wide">Create Account</ButtonText>
             </Button>
-
-            <Box className="flex-row justify-center gap-2">
-              <Text className="text-gray-300">Already have an account?</Text>
-              <Link href="/(auth)/sign-in">
-                <Text className="text-purple-400 font-semibold">Sign in</Text>
-              </Link>
-            </Box>
           </VStack>
+
+          {/* Footer */}
+          <Box className="flex-row justify-center items-center gap-2">
+            <Text className="text-gray-400 text-sm">Already have an account?</Text>
+            <Link href="/(auth)/sign-in">
+              <Text className="text-purple-400 font-bold text-sm">Sign in</Text>
+            </Link>
+          </Box>
         </VStack>
       </Center>
     </Box>
