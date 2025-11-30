@@ -3,5 +3,4 @@ Video calling app sample with React Native using ``react-native-webrtc``, ``reac
 
 -------------
 
-## [Example server](https://github.com/metehankurucu/peer-api)
-
+#
